@@ -1,0 +1,44 @@
+Ivan Iustin 323CB
+
+Prima oara initializez toate structurile necesare cum ar fi rtable si arp_table 
+cat si coada de pachete. Rtable isi citeste datele din fisierele text dar 
+arp_table porneste goala. Dupa ce primesc un pachet il pun intr-o structura 
+in cazul in care nu am acces la macul celei mai bune destinatii si pun structura 
+in coada astfel incat la momentul iesirii are deja toate datele pentru plecare.
+Obtin mac-ul si ip-ul router-ului cat si al sender-ului pentru a adauga intrari
+in tabela si pt ca sunt utile la verificarea conditiilor.
+La verificarea ether_header aflu daca pachetul e de tip IPv4 sau ARP 
+
+                            1.IPv4 
+
+In cazul in care e IPv4 verific daca checksum inca e potrivit, iar daca nu
+atunci arunc pachetul. 
+
+Urmatorul criteriu e ttl iar in cazul in care timpul a expirat trimit un 
+pachet icmp cu eroarea aferenta senderului.
+
+In cazul in care pachetul e destinat router-ului atunci trimit un reply 
+la request. 
+
+Dupa aceea, daca nu exista o ruta pentru destinatarul pachetului
+atunci trimit pachetul icmp pt eroarea de destination unreachable.
+
+In cazul in care pachetul trebuie dat mai departe dar nu am adresa mac
+a urmatoarei entitati din retea atunci creez un arp request in care ii solicit
+mac-ul si adaug pachetul in coada de pachete, urmand ca routerul sa primeasca
+si alte pachete intre timp. 
+
+Daca si mac-ul e disponibil atunci pachetul e 
+trimis mai departe fara alte complicatii
+
+                            2.ARP
+
+Daca pachetul primit e de tip ARP atunci sunt 2 cazuri
+
+a. ARP Request - O alta entitate solicita mac-ul router-ului, caz in care
+router-ul trimite un ARP Reply cu adresa sa MAC.
+
+b. ARP Reply - Router-ul a solicitat altei entitati mac-ul sau iar acum 
+primeste raspunsul, caz in care se adauga o intrare la tabela de arp
+iar toate pachetele care asteapta in coada sunt trimise mai departe
+la acea entitate din retea pentru a ajunge la destinatia finala
